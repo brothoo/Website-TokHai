@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toko Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .product-card {
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .product-card {
+                width: 48%;
+                margin: 1%;
+            }
+        }
+        @media (max-width: 480px) {
+            .product-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-primary text-white text-center py-3">
+        <h1>Toko Online</h1>
+    </header>
+    
+    <div class="container mt-4">
+        <div class="row mb-3">
+            <div class="col-md-6 mx-auto">
+                <input type="text" id="search" class="form-control" placeholder="Cari produk...">
+            </div>
+        </div>
+        
+        <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Tambah Barang</button>
+        
+        <div class="row" id="product-list">
+            <!-- Produk akan ditampilkan di sini -->
+        </div>
+    </div>
+
+    <!-- Modal Tambah Produk -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Produk</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="productName" class="form-control mb-2" placeholder="Nama Produk">
+                    <input type="number" id="productPrice" class="form-control mb-2" placeholder="Harga">
+                    <input type="number" id="productStock" class="form-control mb-2" placeholder="Stok">
+                    <select id="productType" class="form-control mb-2">
+                        <option value="Satuan">Satuan</option>
+                        <option value="Sachet">Sachet</option>
+                        <option value="Kiloan">Kiloan</option>
+                        <option value="Pack">Per Pack</option>
+                    </select>
+                    <input type="file" id="productImage" class="form-control mb-2">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="saveProduct">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            function loadProducts() {
+                let products = JSON.parse(localStorage.getItem("products")) || [];
+                $('#product-list').empty();
+                products.forEach((product, index) => {
+                    $('#product-list').append(`
+                        <div class="col-md-4 product-card" data-index="${index}">
+                            <div class="card p-2">
+                                <img src="${product.image}" class="card-img-top" alt="${product.name}">
+                                <div class="card-body">
+                                    <h5 class="card-title">${product.name}</h5>
+                                    <p>Harga: Rp ${product.price}</p>
+                                    <p>Stok: ${product.stock}</p>
+                                    <p>Tipe: ${product.type}</p>
+                                    <button class="btn btn-warning edit-product">✏️</button>
+                                    <button class="btn btn-danger delete-product">🗑</button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+
+            $('#saveProduct').click(function() {
+                let name = $('#productName').val();
+                let price = $('#productPrice').val();
+                let stock = $('#productStock').val();
+                let type = $('#productType').val();
+                let image = $('#productImage')[0].files[0];
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let products = JSON.parse(localStorage.getItem("products")) || [];
+                    products.push({ name, price, stock, type, image: e.target.result });
+                    localStorage.setItem("products", JSON.stringify(products));
+                    loadProducts();
+                    $('#addProductModal').modal('hide');
+                };
+                if (image) reader.readAsDataURL(image);
+            });
+
+            $(document).on('click', '.delete-product', function() {
+                var confirmed = confirm("Apakah Anda yakin ingin menghapus produk ini?");
+                if (confirmed) {
+                    let index = $(this).closest('.product-card').data("index");
+                    let products = JSON.parse(localStorage.getItem("products")) || [];
+                    products.splice(index, 1);
+                    localStorage.setItem("products", JSON.stringify(products));
+                    loadProducts();
+                }
+            });
+
+            loadProducts();
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
